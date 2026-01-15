@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Serif+SC:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.6;
+  color-scheme: dark;
+}
+
+/* 强制背景色，防止出现白色 */
+html,
+body {
+  background-color: #09090b;
+  /* zinc-950 */
+  color: #e4e4e7;
+  /* zinc-200 */
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  /* 防止因为光效导致滚动条 */
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  isolation: isolate;
+  /* 创建新的层叠上下文 */
+}
+
+/* 衬线字体用于强调文字 */
+.font-serif {
+  font-family: 'Noto Serif SC', serif;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  /* zinc-800 */
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+  /* zinc-700 */
+}
+
+/* 实用工具类 */
+.glass {
+  background: rgba(9, 9, 11, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.animate-enter {
+  animation: enter 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
