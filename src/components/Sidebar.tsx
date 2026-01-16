@@ -57,7 +57,10 @@ export function Sidebar({ history, onSelect, onRefresh, isLoading, hasMore, onLo
                                         {item.style}
                                     </span>
                                     <span className="text-xs text-zinc-600">
-                                        {new Date(item.date).toLocaleDateString()}
+                                        {new Date(item.date).toLocaleString('zh-CN', {
+                                            month: '2-digit', day: '2-digit',
+                                            hour: '2-digit', minute: '2-digit', second: '2-digit'
+                                        })}
                                     </span>
                                 </div>
 
