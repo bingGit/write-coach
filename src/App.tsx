@@ -4,7 +4,7 @@ import { ChatInterface } from './components/chat/ChatInterface';
 import { STYLES, type StyleProfile } from './data/styles';
 import { createLLMService } from './services/llm';
 import { createFeishuService, type SyncRecord } from './services/feishu';
-import { PenTool } from 'lucide-react';
+import { PenTool, History, X } from 'lucide-react';
 
 function App() {
   const [currentStyle, setCurrentStyle] = useState<StyleProfile | null>(null);
@@ -13,6 +13,7 @@ function App() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [pageToken, setPageToken] = useState<string>('');
   const [hasMore, setHasMore] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
 
   const llmService = useMemo(() => createLLMService(), []);
   const feishuService = useMemo(() => createFeishuService(), []);
@@ -114,7 +115,7 @@ function App() {
 
   /* ===== 2. 工作台页面 (Workspace) ===== */
   return (
-    <div className="h-screen w-screen flex flex-row bg-zinc-950 overflow-hidden">
+    <div className="h-screen h-dvh w-screen flex flex-row bg-zinc-950 overflow-hidden">
       {/* 左侧：聊天主区域 (占据剩余空间) */}
       <main className="flex-1 flex flex-col h-full min-w-0 relative">
         <ChatInterface
@@ -124,10 +125,18 @@ function App() {
           onBack={handleBack}
           onSyncSuccess={() => fetchHistory(false)}
         />
+
+        {/* 移动端历史记录按钮 */}
+        <button
+          onClick={() => setShowMobileSidebar(true)}
+          className="md:hidden fixed bottom-24 right-4 z-40 p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-lg shadow-indigo-500/30 transition-all"
+          aria-label="查看历史记录"
+        >
+          <History className="w-5 h-5" />
+        </button>
       </main>
 
-      {/* 右侧：侧边栏 (固定宽度) */}
-      {/* 使用 hidden md:flex 确保在桌面端显示为 flex */}
+      {/* 右侧：侧边栏 (桌面端固定宽度) */}
       <aside className="w-80 h-full border-l border-zinc-800/50 bg-zinc-900/30 hidden md:flex flex-col shrink-0">
         <Sidebar
           history={history}
@@ -138,6 +147,40 @@ function App() {
           onLoadMore={() => fetchHistory(true)}
         />
       </aside>
+
+      {/* 移动端侧边栏抽屉 */}
+      {showMobileSidebar && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          {/* 遮罩层 */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowMobileSidebar(false)}
+          />
+          {/* 抽屉内容 */}
+          <div className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-zinc-900 border-l border-zinc-800/50 flex flex-col animate-slide-in-right">
+            <div className="flex items-center justify-between p-4 border-b border-zinc-800/50">
+              <span className="font-medium text-zinc-200">练习记录</span>
+              <button
+                onClick={() => setShowMobileSidebar(false)}
+                className="p-2 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <Sidebar
+              history={history}
+              onSelect={(record) => {
+                handleSelectHistory(record);
+                setShowMobileSidebar(false);
+              }}
+              onRefresh={() => fetchHistory(false)}
+              isLoading={isLoadingHistory}
+              hasMore={hasMore}
+              onLoadMore={() => fetchHistory(true)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

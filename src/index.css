@@ -18,6 +18,8 @@ body {
   color: #e4e4e7;
   /* zinc-200 */
   height: 100%;
+  height: 100dvh;
+  /* 动态视口高度，适配移动端键盘 */
   width: 100%;
   overflow: hidden;
   /* 防止因为光效导致滚动条 */
@@ -25,6 +27,8 @@ body {
 
 #root {
   height: 100%;
+  height: 100dvh;
+  /* 动态视口高度 */
   width: 100%;
   isolation: isolate;
   /* 创建新的层叠上下文 */
@@ -76,5 +80,20 @@ body {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+/* 移动端抽屉滑入动画 */
+.animate-slide-in-right {
+  animation: slideInRight 0.25s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
   }
 }
