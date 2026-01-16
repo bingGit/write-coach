@@ -58,11 +58,29 @@ export function ChatInterface({ styleProfile, llmService, onBack, initialMessage
         setInput('');
         setIsLoading(true);
 
+        // Add empty AI message placeholder for streaming
+        setMessages(p => [...p, { role: 'assistant', content: '' }]);
+
         try {
-            const response = await llmService.sendMessage([...messages, userMsg]);
-            setMessages(p => [...p, { role: 'assistant', content: response }]);
+            await llmService.sendMessageStream([...messages, userMsg], (chunk) => {
+                // Update the last message (AI placeholder) with new content
+                setMessages(p => {
+                    const updated = [...p];
+                    const lastIdx = updated.length - 1;
+                    updated[lastIdx] = {
+                        ...updated[lastIdx],
+                        content: updated[lastIdx].content + chunk
+                    };
+                    return updated;
+                });
+            });
         } catch (e) {
-            setMessages(p => [...p, { role: 'assistant', content: '连接断开，请检查网络或配置。' }]);
+            setMessages(p => {
+                const updated = [...p];
+                const lastIdx = updated.length - 1;
+                updated[lastIdx] = { ...updated[lastIdx], content: '连接断开，请检查网络或配置。' };
+                return updated;
+            });
         } finally {
             setIsLoading(false);
         }

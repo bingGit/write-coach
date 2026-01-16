@@ -26,4 +26,13 @@ export class MockProvider implements LLMProvider {
 
         return `[Mock] 收到你的内容：${lastUserMessage}。请根据当前风格继续修改。`;
     }
+
+    async sendMessageStream(messages: Message[], onChunk: (chunk: string) => void): Promise<void> {
+        // Simulate streaming with character-by-character output
+        const response = await this.sendMessage(messages);
+        for (const char of response) {
+            onChunk(char);
+            await new Promise(resolve => setTimeout(resolve, 20)); // 20ms per char
+        }
+    }
 }

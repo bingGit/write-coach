@@ -5,4 +5,5 @@ export interface Message {
 
 export interface LLMProvider {
     sendMessage(messages: Message[]): Promise<string>;
+    sendMessageStream(messages: Message[], onChunk: (chunk: string) => void): Promise<void>;
 }
