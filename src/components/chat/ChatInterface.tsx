@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { SendHorizonal, ArrowLeft, Loader2, Bot, User, Copy, Check, UploadCloud, Square, CheckSquare } from 'lucide-react';
+import { SendHorizonal, ArrowLeft, Loader2, Bot, User, Copy, Check, UploadCloud, Square, CheckSquare, CornerDownLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Message, LLMProvider } from '../../services/llm/types';
@@ -358,16 +358,33 @@ export function ChatInterface({ styleProfile, llmService, onBack, initialMessage
             </div>
 
             {/* Input */}
-            <div className={`p-6 border-t border-zinc-800/50 bg-zinc-950/80 backdrop-blur shrink-0 transition-opacity ${selectMode ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
+            <div className={`p-3 md:p-6 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:pb-6 border-t border-zinc-800/50 bg-zinc-950/80 backdrop-blur shrink-0 transition-opacity ${selectMode ? 'opacity-30 pointer-events-none' : 'opacity-100'}`}>
                 <div className="max-w-3xl mx-auto relative group">
                     <textarea
                         value={input}
                         onChange={e => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="输入你的文稿... (Shift+Enter 换行)"
-                        className="w-full bg-zinc-900/50 border border-zinc-800 text-zinc-200 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 focus:bg-zinc-900 transition-all resize-none min-h-[52px] max-h-48"
+                        onFocus={(e) => {
+                            // 移动端聚焦时滚动输入框到可见区域
+                            setTimeout(() => {
+                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 300);
+                        }}
+                        placeholder="输入你的文稿..."
+                        className="w-full bg-zinc-900/50 border border-zinc-800 text-zinc-200 rounded-xl px-4 py-3 pr-24 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 focus:bg-zinc-900 transition-all resize-none min-h-[52px] max-h-48"
                         style={{ height: 'auto' }}
+                        rows={2}
                     />
+                    {/* 换行按钮 (移动端可见) */}
+                    <button
+                        type="button"
+                        onClick={() => setInput(prev => prev + '\n')}
+                        className="absolute right-14 bottom-2 p-2 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-lg transition-all md:hidden"
+                        title="换行"
+                    >
+                        <CornerDownLeft className="w-5 h-5" />
+                    </button>
+                    {/* 发送按钮 */}
                     <button
                         onClick={handleSend}
                         disabled={!input.trim() || isLoading}
