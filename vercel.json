@@ -1,0 +1,8 @@
+{
+    "rewrites": [
+        {
+            "source": "/feishu-api/(.*)",
+            "destination": "/api/feishu/$1"
+        }
+    ]
+}
