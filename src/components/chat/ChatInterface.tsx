@@ -9,15 +9,24 @@ import { createFeishuService } from '../../services/feishu';
 interface ChatInterfaceProps {
     styleProfile: StyleProfile;
     llmService: LLMProvider;
-    onSaveDraft: (text: string) => void;
+    initialMessages?: Message[];
     onBack: () => void;
 }
 
-export function ChatInterface({ styleProfile, llmService, onBack }: ChatInterfaceProps) {
-    const [messages, setMessages] = useState<Message[]>([
-        { role: 'system', content: styleProfile.systemPrompt },
-        { role: 'assistant', content: styleProfile.openingMessage }
-    ]);
+export function ChatInterface({ styleProfile, llmService, onBack, initialMessages }: ChatInterfaceProps) {
+    const [messages, setMessages] = useState<Message[]>([]);
+
+    // Initialize or Reset messages when profile or history changes
+    useEffect(() => {
+        if (initialMessages && initialMessages.length > 0) {
+            setMessages(initialMessages);
+        } else {
+            setMessages([
+                { role: 'system', content: styleProfile.systemPrompt },
+                { role: 'assistant', content: styleProfile.openingMessage }
+            ]);
+        }
+    }, [styleProfile, initialMessages]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [copiedId, setCopiedId] = useState<string | null>(null);

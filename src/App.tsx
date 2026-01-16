@@ -1,24 +1,66 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { ChatInterface } from './components/chat/ChatInterface';
 import { STYLES, type StyleProfile } from './data/styles';
 import { createLLMService } from './services/llm';
+import { createFeishuService, type SyncRecord } from './services/feishu';
 import { PenTool } from 'lucide-react';
-
-interface Draft {
-  id: string;
-  content: string;
-  timestamp: number;
-}
 
 function App() {
   const [currentStyle, setCurrentStyle] = useState<StyleProfile | null>(null);
-  const [drafts, setDrafts] = useState<Draft[]>([]);
-  const llmService = useMemo(() => createLLMService(), []);
+  const [history, setHistory] = useState<SyncRecord[]>([]);
+  const [initialMessages, setInitialMessages] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [pageToken, setPageToken] = useState<string>('');
+  const [hasMore, setHasMore] = useState(false);
 
-  const handleSaveDraft = (content: string) => {
-    const newDraft = { id: Date.now().toString(), content, timestamp: Date.now() };
-    setDrafts(prev => [newDraft, ...prev]);
+  const llmService = useMemo(() => createLLMService(), []);
+  const feishuService = useMemo(() => createFeishuService(), []);
+
+  const fetchHistory = async (isLoadMore = false) => {
+    if (!feishuService) return;
+    setIsLoadingHistory(true);
+    try {
+      const tokenToUse = isLoadMore ? pageToken : undefined;
+      const result = await feishuService.getHistory(tokenToUse);
+
+      if (isLoadMore) {
+        setHistory(prev => [...prev, ...result.items]);
+      } else {
+        setHistory(result.items);
+      }
+
+      setHasMore(result.hasMore);
+      setPageToken(result.nextPageToken || '');
+
+    } catch (e) {
+      console.error('Failed to load history:', e);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  // Load history on mount
+  useEffect(() => {
+    fetchHistory();
+  }, [feishuService]);
+
+  const handleSelectHistory = (record: SyncRecord) => {
+    // 1. Find matching style
+    const style = STYLES.find(s => s.name === record.style) || STYLES[0];
+    setCurrentStyle(style);
+
+    // 2. Construct initial messages
+    setInitialMessages([
+      { role: 'system', content: style.systemPrompt },
+      { role: 'user', content: record.original },
+      { role: 'assistant', content: record.refined }
+    ]);
+  };
+
+  const handleBack = () => {
+    setCurrentStyle(null);
+    setInitialMessages([]);
   };
 
   /* ===== 1. 欢迎/选择页面 (Home) ===== */
@@ -47,7 +89,10 @@ function App() {
             {STYLES.map((style) => (
               <button
                 key={style.id}
-                onClick={() => setCurrentStyle(style)}
+                onClick={() => {
+                  setCurrentStyle(style);
+                  setInitialMessages([]); // Reset messages for new chat
+                }}
                 className="group flex flex-col items-start p-8 rounded-3xl bg-zinc-900/50 border border-zinc-800/50 hover:bg-zinc-900 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 text-left"
               >
                 <span className="text-4xl mb-6 group-hover:scale-110 transition-transform duration-300 block">
@@ -75,15 +120,22 @@ function App() {
         <ChatInterface
           styleProfile={currentStyle}
           llmService={llmService}
-          onSaveDraft={handleSaveDraft}
-          onBack={() => setCurrentStyle(null)}
+          initialMessages={initialMessages}
+          onBack={handleBack}
         />
       </main>
 
       {/* 右侧：侧边栏 (固定宽度) */}
       {/* 使用 hidden md:flex 确保在桌面端显示为 flex */}
       <aside className="w-80 h-full border-l border-zinc-800/50 bg-zinc-900/30 hidden md:flex flex-col shrink-0">
-        <Sidebar drafts={drafts} />
+        <Sidebar
+          history={history}
+          onSelect={handleSelectHistory}
+          onRefresh={() => fetchHistory(false)}
+          isLoading={isLoadingHistory}
+          hasMore={hasMore}
+          onLoadMore={() => fetchHistory(true)}
+        />
       </aside>
     </div>
   );

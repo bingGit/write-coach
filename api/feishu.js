@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         }
     }
 
-    const targetUrl = `https://open.feishu.cn/${targetPath}`;
+    const targetUrl = `https://open.feishu.cn/${targetPath}${url.search}`;
     console.log('Proxying to:', targetUrl);
 
     try {

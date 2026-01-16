@@ -5,7 +5,7 @@ interface FeishuConfig {
     tableId: string;
 }
 
-interface SyncRecord {
+export interface SyncRecord {
     original: string;
     refined: string;
     style: string;
@@ -80,6 +80,50 @@ export class FeishuService {
         if (data.code !== 0) {
             throw new Error(`Sync Error: ${data.msg}`);
         }
+    }
+
+    async getHistory(pageToken?: string): Promise<{ items: SyncRecord[], hasMore: boolean, nextPageToken?: string }> {
+        const token = await this.getTenantAccessToken();
+        const { baseId, tableId } = this.config;
+
+        // Sort by Date descending
+        const sortParam = JSON.stringify(['日期 DESC']);
+        let url = `/feishu-api/open-apis/bitable/v1/apps/${baseId}/tables/${tableId}/records?sort=${encodeURIComponent(sortParam)}&pageSize=100`;
+
+        if (pageToken) {
+            url += `&page_token=${pageToken}`;
+        }
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Fetch History Failed: ${errorText}`);
+        }
+
+        const data = await response.json();
+        if (data.code !== 0) {
+            throw new Error(`Fetch History Error: ${data.msg}`);
+        }
+
+        const items = (data.data.items || []).map((item: any) => ({
+            original: item.fields['原句'] || '',
+            refined: item.fields['润色'] || '',
+            style: item.fields['风格'] || '默认',
+            date: new Date(item.fields['日期']).toISOString()
+        }));
+
+        return {
+            items,
+            hasMore: data.data.has_more,
+            nextPageToken: data.data.page_token
+        };
     }
 }
 
