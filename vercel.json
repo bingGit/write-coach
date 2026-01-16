@@ -1,17 +1,8 @@
 {
-    "functions": {
-        "api/**/*.js": {
-            "runtime": "@vercel/node@3"
-        }
-    },
     "rewrites": [
         {
             "source": "/feishu-api/:path*",
             "destination": "/api/feishu"
-        },
-        {
-            "source": "/((?!api/).*)",
-            "destination": "/index.html"
         }
     ]
 }
