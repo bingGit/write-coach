@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
         name: 'feishu-auth-middleware',
         configureServer(server) {
           // Middleware to intercept auth requests BEFORE proxy
-          server.middlewares.use('/feishu-api/open-apis/auth', async (req, res) => {
+          server.middlewares.use('/feishu-api/open-apis/auth', async (_req, res) => {
             try {
               const data = await getToken(env.FEISHU_APP_ID, env.FEISHU_APP_SECRET);
               res.setHeader('Content-Type', 'application/json');
