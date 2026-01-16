@@ -122,6 +122,7 @@ function App() {
           llmService={llmService}
           initialMessages={initialMessages}
           onBack={handleBack}
+          onSyncSuccess={() => fetchHistory(false)}
         />
       </main>
 

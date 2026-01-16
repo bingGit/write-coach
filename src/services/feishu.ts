@@ -1,6 +1,4 @@
 interface FeishuConfig {
-    appId: string;
-    appSecret: string;
     baseId: string;
     tableId: string;
 }
@@ -26,13 +24,11 @@ export class FeishuService {
             return this.token;
         }
 
+        // Token is now obtained from server-side API (credentials stay on server)
         const response = await fetch('/feishu-api/open-apis/auth/v3/tenant_access_token/internal', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                app_id: this.config.appId,
-                app_secret: this.config.appSecret
-            })
+            body: JSON.stringify({}) // No credentials sent from frontend
         });
 
         if (!response.ok) {
@@ -128,16 +124,9 @@ export class FeishuService {
 }
 
 export function createFeishuService() {
-    const appId = import.meta.env.VITE_FEISHU_APP_ID;
-    const appSecret = import.meta.env.VITE_FEISHU_APP_SECRET;
-    // Use user provided BaseID/TableID if env not set, but better to use env
+    // Only need baseId and tableId (non-sensitive)
     const baseId = import.meta.env.VITE_FEISHU_BASE_ID || 'D6LobZNPoalgEysACHKcGShln6d';
     const tableId = import.meta.env.VITE_FEISHU_TABLE_ID || 'tbliAsv53wMBI3yG';
 
-    if (!appId || !appSecret) {
-        console.warn('Feishu credentials missing');
-        return null;
-    }
-
-    return new FeishuService({ appId, appSecret, baseId, tableId });
+    return new FeishuService({ baseId, tableId });
 }

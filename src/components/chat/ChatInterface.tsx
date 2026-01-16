@@ -11,9 +11,10 @@ interface ChatInterfaceProps {
     llmService: LLMProvider;
     initialMessages?: Message[];
     onBack: () => void;
+    onSyncSuccess?: () => void;
 }
 
-export function ChatInterface({ styleProfile, llmService, onBack, initialMessages }: ChatInterfaceProps) {
+export function ChatInterface({ styleProfile, llmService, onBack, initialMessages, onSyncSuccess }: ChatInterfaceProps) {
     const [messages, setMessages] = useState<Message[]>([]);
 
     // Initialize or Reset messages when profile or history changes
@@ -172,6 +173,7 @@ export function ChatInterface({ styleProfile, llmService, onBack, initialMessage
             }
 
             setSyncStatus('success');
+            onSyncSuccess?.(); // Refresh history list
             setTimeout(() => {
                 setSelectMode(false);
                 setSelectedIndices(new Set());
